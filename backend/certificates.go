@@ -158,37 +158,3 @@ func genClientCert(privKey, caPrivKey *rsa.PrivateKey, ca *x509.Certificate, cn 
 
 	return
 }
-
-// return PEM encoded CRL
-func genCRL(certs []*RevokedCert, ca *x509.Certificate, caKey *rsa.PrivateKey) (crlPEM *bytes.Buffer, err error) {
-	var revokedCertificates []pkix.RevokedCertificate
-
-	for _, cert := range certs {
-		revokedCertificates = append(revokedCertificates, pkix.RevokedCertificate{SerialNumber: cert.Cert.SerialNumber, RevocationTime: cert.RevokedTime})
-	}
-
-	revocationList := &x509.RevocationList{
-		//SignatureAlgorithm: x509.SHA256WithRSA,
-		RevokedCertificates: revokedCertificates,
-		Number:              big.NewInt(1),
-		ThisUpdate:          time.Now(),
-		NextUpdate:          time.Now().Add(180 * time.Hour * 24),
-		//ExtraExtensions: []pkix.Extension{},
-	}
-
-	crl, err := x509.CreateRevocationList(rand.Reader, revocationList, ca, caKey)
-	if err != nil {
-		return nil, err
-	}
-
-	crlPEM = new(bytes.Buffer)
-	err = pem.Encode(crlPEM, &pem.Block{
-		Type:  "X509 CRL",
-		Bytes: crl,
-	})
-	if err != nil {
-		return
-	}
-
-	return
-}
