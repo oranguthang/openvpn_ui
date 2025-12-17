@@ -26,14 +26,14 @@ else
     echo "[INFO] Generating new certificates..."
     easyrsa init-pki
     cp -R /usr/share/easy-rsa/* ${EASY_RSA_LOC}/pki
-    echo "ca" | easyrsa build-ca nopass
-    easyrsa build-server-full server nopass
+    easyrsa --batch build-ca nopass
+    easyrsa --batch build-server-full server nopass
     openvpn --genkey secret ./pki/ta.key
     echo "[INFO] Certificates generated successfully"
 fi
 
 # Generate CRL
-easyrsa gen-crl
+easyrsa --batch gen-crl
 
 # Set permissions
 [ -d ${EASY_RSA_LOC}/pki ] && chmod 755 ${EASY_RSA_LOC}/pki

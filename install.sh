@@ -288,9 +288,9 @@ EOF
     echo -e "${YELLOW}═══════════════════════════════════════════════════════════${NC}"
     echo ""
     echo -e "Management commands:"
-    echo -e "  ${BLUE}cd $INSTALL_DIR && docker compose logs -f${NC}     # View logs"
-    echo -e "  ${BLUE}cd $INSTALL_DIR && docker compose restart${NC}     # Restart"
-    echo -e "  ${BLUE}cd $INSTALL_DIR && docker compose down${NC}        # Stop"
+    echo -e "  ${BLUE}cd $INSTALL_DIR && sudo docker compose logs -f${NC}     # View logs"
+    echo -e "  ${BLUE}cd $INSTALL_DIR && sudo docker compose restart${NC}     # Restart"
+    echo -e "  ${BLUE}cd $INSTALL_DIR && sudo docker compose down${NC}        # Stop"
     echo ""
 }
 

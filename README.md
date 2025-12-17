@@ -32,13 +32,13 @@ The script will:
 cd /opt/openvpn-ui
 
 # View logs
-docker compose logs -f
+sudo docker compose logs -f
 
 # Restart
-docker compose restart
+sudo docker compose restart
 
 # Stop
-docker compose down
+sudo docker compose down
 
 # Uninstall
 sudo bash install.sh uninstall
