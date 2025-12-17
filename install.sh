@@ -156,7 +156,7 @@ install() {
     ADMIN_USER=$(generate_username 10)
     ADMIN_PASS=$(generate_password)
     WEB_PORT=$(generate_random_port)
-    OVPN_PORT=1194
+    OPENVPN_PORT=1194
     SERVER_IP=$(get_public_ip)
 
     print_info "Generated admin username: $ADMIN_USER"
@@ -189,9 +189,9 @@ WEB_PORT=$WEB_PORT
 DOMAIN=$DOMAIN
 
 # OpenVPN settings
-OVPN_SERVER_NET=10.8.0.0
-OVPN_SERVER_MASK=255.255.255.0
-OVPN_SERVER_PORT=$OVPN_PORT
+OPENVPN_SERVER_NET=10.8.0.0
+OPENVPN_SERVER_MASK=255.255.255.0
+OPENVPN_SERVER_PORT=$OPENVPN_PORT
 
 # Timezone
 TZ=UTC
@@ -280,7 +280,7 @@ EOF
     echo -e "  ${CYAN}Username:${NC}      $ADMIN_USER"
     echo -e "  ${CYAN}Password:${NC}      $ADMIN_PASS"
     echo ""
-    echo -e "  ${CYAN}OpenVPN Port:${NC}  $OVPN_PORT (TCP/UDP)"
+    echo -e "  ${CYAN}OpenVPN Port:${NC}  $OPENVPN_PORT (TCP/UDP)"
     echo -e "  ${CYAN}Install Dir:${NC}   $INSTALL_DIR"
     echo ""
     echo -e "${YELLOW}═══════════════════════════════════════════════════════════${NC}"

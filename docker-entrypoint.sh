@@ -5,9 +5,9 @@ EASY_RSA_LOC="/etc/openvpn/easyrsa"
 SERVER_CERT="${EASY_RSA_LOC}/pki/issued/server.crt"
 CONFIG_DIR="/etc/openvpn-ui"
 
-OVPN_SRV_NET=${OVPN_SERVER_NET:-10.8.0.0}
-OVPN_SRV_MASK=${OVPN_SERVER_MASK:-255.255.255.0}
-OVPN_SRV_PORT=${OVPN_SERVER_PORT:-1194}
+OPENVPN_SRV_NET=${OPENVPN_SERVER_NET:-10.8.0.0}
+OPENVPN_SRV_MASK=${OPENVPN_SERVER_MASK:-255.255.255.0}
+OPENVPN_SRV_PORT=${OPENVPN_SERVER_PORT:-1194}
 UI_PORT=${WEB_PORT:-8080}
 
 echo "================================================"
@@ -50,7 +50,7 @@ fi
 
 # Setup NAT/iptables
 echo "[INFO] Configuring iptables..."
-iptables -t nat -A POSTROUTING -s ${OVPN_SRV_NET}/${OVPN_SRV_MASK} -o eth0 -j MASQUERADE 2>/dev/null || true
+iptables -t nat -A POSTROUTING -s ${OPENVPN_SRV_NET}/${OPENVPN_SRV_MASK} -o eth0 -j MASQUERADE 2>/dev/null || true
 iptables -A FORWARD -i tun0 -o eth0 -j ACCEPT 2>/dev/null || true
 iptables -A FORWARD -i eth0 -o tun0 -m state --state RELATED,ESTABLISHED -j ACCEPT 2>/dev/null || true
 
@@ -66,8 +66,8 @@ echo "[INFO] Starting OpenVPN server..."
 openvpn --config /etc/openvpn/openvpn.conf \
     --client-config-dir /etc/openvpn/ccd \
     --management 127.0.0.1 8989 \
-    --port ${OVPN_SRV_PORT} \
-    --server ${OVPN_SRV_NET} ${OVPN_SRV_MASK} &
+    --port ${OPENVPN_SRV_PORT} \
+    --server ${OPENVPN_SRV_NET} ${OPENVPN_SRV_MASK} &
 
 OPENVPN_PID=$!
 
@@ -82,8 +82,8 @@ fi
 echo "[INFO] OpenVPN started successfully"
 
 # Calculate network CIDR
-IFS='.' read -ra NET_PARTS <<< "$OVPN_SRV_NET"
-IFS='.' read -ra MASK_PARTS <<< "$OVPN_SRV_MASK"
+IFS='.' read -ra NET_PARTS <<< "$OPENVPN_SRV_NET"
+IFS='.' read -ra MASK_PARTS <<< "$OPENVPN_SRV_MASK"
 CIDR=0
 for i in "${MASK_PARTS[@]}"; do
     case $i in
@@ -97,18 +97,18 @@ for i in "${MASK_PARTS[@]}"; do
         128) CIDR=$((CIDR+1));;
     esac
 done
-OVPN_NETWORK="${OVPN_SRV_NET}/${CIDR}"
+OPENVPN_NETWORK="${OPENVPN_SRV_NET}/${CIDR}"
 
 echo "[INFO] Starting OpenVPN UI..."
 
 # Start UI
-exec /app/openvpn-ui \
+exec /app/openvpn_ui \
     --listen.host=0.0.0.0 \
     --listen.port=${UI_PORT} \
     --easyrsa.path=${EASY_RSA_LOC} \
     --easyrsa.index-path=${EASY_RSA_LOC}/pki/index.txt \
-    --openvpn.network=${OVPN_NETWORK} \
-    --openvpn.server=127.0.0.1:${OVPN_SRV_PORT}:tcp \
+    --openvpn.network=${OPENVPN_NETWORK} \
+    --openvpn.server=127.0.0.1:${OPENVPN_SRV_PORT}:tcp \
     --ccd \
     --ccd.path=/etc/openvpn/ccd \
     --mgmt=127.0.0.1:8989

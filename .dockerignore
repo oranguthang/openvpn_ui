@@ -16,7 +16,7 @@ frontend/static/dist
 openvpn-web-ui
 openvpn-ui
 openvpn-admin
-ovpn-admin
+openvpn_ui
 
 docker-compose.yaml
 docker-compose.yaml.example

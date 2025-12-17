@@ -1,4 +1,4 @@
-module ovpn-admin
+module openvpn_ui
 
 go 1.17
 

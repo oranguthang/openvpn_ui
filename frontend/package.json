@@ -1,6 +1,6 @@
 {
-  "name": "ovpn-admin",
-  "description": "Vue.js admin ui for openvpn and easyrsa",
+  "name": "openvpn_ui",
+  "description": "Vue.js admin UI for OpenVPN",
   "version": "1.0.1a",
   "author": "vitaliy.snurnitsin@gmail.com",
   "license": "MIT",

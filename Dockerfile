@@ -30,7 +30,7 @@ ARG TARGETARCH
 RUN packr2 && \
     CGO_ENABLED=1 GOOS=linux GOARCH=${TARGETARCH} \
     go build -a -tags netgo -ldflags '-linkmode external -extldflags -static -s -w' \
-    -o openvpn-ui && \
+    -o openvpn_ui && \
     packr2 clean
 
 # ========================================================
@@ -58,7 +58,7 @@ RUN apk add --no-cache \
     && rm -rf /tmp/* /var/tmp/* /var/cache/apk/*
 
 # Copy built binary
-COPY --from=backend-builder /app/openvpn-ui /app/openvpn-ui
+COPY --from=backend-builder /app/openvpn_ui /app/openvpn_ui
 
 # Copy templates
 COPY templates/ /app/templates/
@@ -68,12 +68,12 @@ COPY setup/ /etc/openvpn/setup/
 
 # Copy entrypoint
 COPY docker-entrypoint.sh /app/docker-entrypoint.sh
-RUN chmod +x /app/docker-entrypoint.sh /app/openvpn-ui
+RUN chmod +x /app/docker-entrypoint.sh /app/openvpn_ui
 
 # Environment variables
-ENV OVPN_SERVER_NET=10.8.0.0
-ENV OVPN_SERVER_MASK=255.255.255.0
-ENV OVPN_SERVER_PORT=1194
+ENV OPENVPN_SERVER_NET=10.8.0.0
+ENV OPENVPN_SERVER_MASK=255.255.255.0
+ENV OPENVPN_SERVER_PORT=1194
 ENV WEB_PORT=8080
 ENV ADMIN_USERNAME=""
 ENV ADMIN_PASSWORD=""

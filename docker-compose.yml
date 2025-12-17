@@ -3,8 +3,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: openvpn-ui:latest
-    container_name: openvpn-ui
+    image: openvpn_ui:latest
+    container_name: openvpn_ui
     restart: unless-stopped
     privileged: true
     cap_add:
@@ -16,17 +16,17 @@ services:
       # Domain for Let's Encrypt HTTPS (leave empty for HTTP only)
       - DOMAIN=${DOMAIN:-}
       # OpenVPN settings
-      - OVPN_SERVER_NET=${OVPN_SERVER_NET:-10.8.0.0}
-      - OVPN_SERVER_MASK=${OVPN_SERVER_MASK:-255.255.255.0}
-      - OVPN_SERVER_PORT=${OVPN_SERVER_PORT:-1194}
+      - OPENVPN_SERVER_NET=${OPENVPN_SERVER_NET:-10.8.0.0}
+      - OPENVPN_SERVER_MASK=${OPENVPN_SERVER_MASK:-255.255.255.0}
+      - OPENVPN_SERVER_PORT=${OPENVPN_SERVER_PORT:-1194}
       # Web UI port (internal, mapped below)
       - WEB_PORT=${WEB_PORT:-8080}
       # Timezone
       - TZ=${TZ:-UTC}
     ports:
       # OpenVPN port (TCP and UDP)
-      - "${OVPN_SERVER_PORT:-1194}:${OVPN_SERVER_PORT:-1194}/tcp"
-      - "${OVPN_SERVER_PORT:-1194}:${OVPN_SERVER_PORT:-1194}/udp"
+      - "${OPENVPN_SERVER_PORT:-1194}:${OPENVPN_SERVER_PORT:-1194}/tcp"
+      - "${OPENVPN_SERVER_PORT:-1194}:${OPENVPN_SERVER_PORT:-1194}/udp"
       # Web UI port
       - "${WEB_PORT:-8080}:${WEB_PORT:-8080}"
       # HTTPS port (if domain is set)

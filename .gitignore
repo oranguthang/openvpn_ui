@@ -11,7 +11,7 @@ data/
 openvpn-web-ui*
 openvpn-ui*
 openvpn-admin*
-ovpn-admin*
+openvpn_ui*
 
 # Frontend
 frontend/node_modules
