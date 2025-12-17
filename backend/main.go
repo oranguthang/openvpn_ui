@@ -685,7 +685,7 @@ func (oAdmin *OpenVPNAdmin) userCreate(username, password string) (bool, string)
 		}
 	}
 
-	o := runBash(fmt.Sprintf("cd %s && %s build-client-full %s nopass 1>/dev/null", *easyrsaDirPath, *easyrsaBinPath, username))
+	o := runBash(fmt.Sprintf("cd %s && %s --batch build-client-full %s nopass", *easyrsaDirPath, *easyrsaBinPath, username))
 	log.Debug(o)
 
 	if *authByPassword {
@@ -737,7 +737,7 @@ func (oAdmin *OpenVPNAdmin) getUserStatistic(username string) []clientStatus {
 func (oAdmin *OpenVPNAdmin) userRevoke(username string) (error, string) {
 	log.Infof("Revoke certificate for user %s", username)
 	if checkUserExist(username) {
-		o := runBash(fmt.Sprintf("cd %[1]s && echo yes | %[2]s revoke %[3]s 1>/dev/null && %[2]s gen-crl 1>/dev/null", *easyrsaDirPath, *easyrsaBinPath, username))
+		o := runBash(fmt.Sprintf("cd %[1]s && %[2]s --batch revoke %[3]s && %[2]s --batch gen-crl", *easyrsaDirPath, *easyrsaBinPath, username))
 		log.Debugln(o)
 
 		if *authByPassword {
@@ -793,7 +793,7 @@ func (oAdmin *OpenVPNAdmin) userUnrevoke(username string) (error, string) {
 						log.Error(err)
 					}
 
-					_ = runBash(fmt.Sprintf("cd %s && %s gen-crl 1>/dev/null", *easyrsaDirPath, *easyrsaBinPath))
+					_ = runBash(fmt.Sprintf("cd %s && %s --batch gen-crl", *easyrsaDirPath, *easyrsaBinPath))
 
 					if *authByPassword {
 						o := runBash(fmt.Sprintf("openvpn-user restore --db-path %s --user %s", *authDatabase, username))
@@ -875,7 +875,7 @@ func (oAdmin *OpenVPNAdmin) userRotate(username, newPassword string) (error, str
 			log.Error(err)
 		}
 
-		_ = runBash(fmt.Sprintf("cd %s && %s gen-crl 1>/dev/null", *easyrsaDirPath, *easyrsaBinPath))
+		_ = runBash(fmt.Sprintf("cd %s && %s --batch gen-crl", *easyrsaDirPath, *easyrsaBinPath))
 		crlFix()
 		oAdmin.clients = oAdmin.usersList()
 		return nil, fmt.Sprintf("{\"msg\":\"User %s successfully rotated\"}", username)
@@ -900,7 +900,7 @@ func (oAdmin *OpenVPNAdmin) userDelete(username string) (error, string) {
 		if err != nil {
 			log.Error(err)
 		}
-		_ = runBash(fmt.Sprintf("cd %s && %s gen-crl 1>/dev/null ", *easyrsaDirPath, *easyrsaBinPath))
+		_ = runBash(fmt.Sprintf("cd %s && %s --batch gen-crl", *easyrsaDirPath, *easyrsaBinPath))
 		crlFix()
 		oAdmin.clients = oAdmin.usersList()
 		return nil, fmt.Sprintf("{\"msg\":\"User %s successfully deleted\"}", username)
