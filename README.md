@@ -9,14 +9,13 @@ Simple web UI to manage OpenVPN users, their certificates & routes.
 - Rotate user certificates
 - Client-config-dir (CCD) support for static IPs and custom routes
 - Optional password authentication for OpenVPN
-- Prometheus metrics
 - Built-in web authentication
 - Let's Encrypt HTTPS support
 
 ## Installation
 
 ```bash
-bash <(curl -Ls https://raw.githubusercontent.com/oranguthang/openvpn_ui/main/install.sh)
+curl -Ls https://raw.githubusercontent.com/oranguthang/openvpn_ui/main/install.sh | sudo bash
 ```
 
 The script will:
@@ -42,7 +41,7 @@ docker compose restart
 docker compose down
 
 # Uninstall
-bash install.sh uninstall
+sudo bash install.sh uninstall
 ```
 
 ## Requirements

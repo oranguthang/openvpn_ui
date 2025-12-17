@@ -167,7 +167,7 @@ install() {
     echo ""
     echo -e "${YELLOW}Do you want to configure HTTPS with Let's Encrypt?${NC}"
     echo -e "Enter your domain (e.g., vpn.example.com) or press Enter to skip:"
-    read -r DOMAIN
+    read -r DOMAIN < /dev/tty
 
     if [ -n "$DOMAIN" ]; then
         print_info "Domain configured: $DOMAIN"
@@ -301,7 +301,7 @@ uninstall() {
 
     print_warning "This will remove OpenVPN UI and all data!"
     echo -n "Are you sure? (y/N): "
-    read -r confirm
+    read -r confirm < /dev/tty
 
     if [[ "$confirm" != "y" && "$confirm" != "Y" ]]; then
         print_info "Uninstall cancelled"
