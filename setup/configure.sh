@@ -4,9 +4,9 @@ set -e
 EASY_RSA_LOC="/etc/openvpn/easyrsa"
 SERVER_CERT="${EASY_RSA_LOC}/pki/issued/server.crt"
 
-OVPN_SRV_NET=${OVPN_SERVER_NET:-10.8.0.0}
-OVPN_SRV_MASK=${OVPN_SERVER_MASK:-255.255.255.0}
-OVPN_SRV_PORT=${OVPN_SERVER_PORT:-1194}
+OPENVPN_SRV_NET=${OPENVPN_SERVER_NET:-10.8.0.0}
+OPENVPN_SRV_MASK=${OPENVPN_SERVER_MASK:-255.255.255.0}
+OPENVPN_SRV_PORT=${OPENVPN_SERVER_PORT:-1194}
 
 cd $EASY_RSA_LOC
 
@@ -38,5 +38,5 @@ cp -f /etc/openvpn/setup/openvpn.conf /etc/openvpn/openvpn.conf
 openvpn --config /etc/openvpn/openvpn.conf \
     --client-config-dir /etc/openvpn/ccd \
     --management 127.0.0.1 8989 \
-    --port ${OVPN_SRV_PORT} \
-    --server ${OVPN_SRV_NET} ${OVPN_SRV_MASK}
+    --port ${OPENVPN_SRV_PORT} \
+    --server ${OPENVPN_SRV_NET} ${OPENVPN_SRV_MASK}
