@@ -13,6 +13,8 @@ services:
       # Admin credentials (set by install.sh or manually)
       - ADMIN_USERNAME=${ADMIN_USERNAME:-admin}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD:-}
+      # Secret path for web UI (e.g., /abc123/)
+      - SECRET_PATH=${SECRET_PATH:-}
       # Domain for Let's Encrypt HTTPS (leave empty for HTTP only)
       - DOMAIN=${DOMAIN:-}
       # OpenVPN settings

@@ -9,6 +9,7 @@ OPENVPN_SRV_NET=${OPENVPN_SERVER_NET:-10.8.0.0}
 OPENVPN_SRV_MASK=${OPENVPN_SERVER_MASK:-255.255.255.0}
 OPENVPN_SRV_PORT=${OPENVPN_SERVER_PORT:-1194}
 UI_PORT=${WEB_PORT:-8080}
+UI_BASE_URL="/${SECRET_PATH:-}/"
 
 echo "================================================"
 echo "  OpenVPN UI - Starting..."
@@ -105,6 +106,7 @@ echo "[INFO] Starting OpenVPN UI..."
 exec /app/openvpn_ui \
     --listen.host=0.0.0.0 \
     --listen.port=${UI_PORT} \
+    --listen.base-url=${UI_BASE_URL} \
     --easyrsa.path=${EASY_RSA_LOC} \
     --easyrsa.index-path=${EASY_RSA_LOC}/pki/index.txt \
     --openvpn.network=${OPENVPN_NETWORK} \

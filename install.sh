@@ -156,12 +156,15 @@ install() {
     ADMIN_USER=$(generate_username 10)
     ADMIN_PASS=$(generate_password)
     WEB_PORT=$(generate_random_port)
-    OPENVPN_PORT=1194
+    OPENVPN_PORT=$(shuf -i 10000-60000 -n 1)
+    SECRET_PATH=$(generate_username 16)
     SERVER_IP=$(get_public_ip)
 
     print_info "Generated admin username: $ADMIN_USER"
     print_info "Generated admin password: $ADMIN_PASS"
     print_info "Generated web UI port: $WEB_PORT"
+    print_info "Generated OpenVPN port: $OPENVPN_PORT"
+    print_info "Generated secret path: /$SECRET_PATH/"
 
     # Ask for domain (optional, for Let's Encrypt)
     echo ""
@@ -186,6 +189,7 @@ install() {
 ADMIN_USERNAME=$ADMIN_USER
 ADMIN_PASSWORD=$ADMIN_PASS
 WEB_PORT=$WEB_PORT
+SECRET_PATH=$SECRET_PATH
 DOMAIN=$DOMAIN
 
 # OpenVPN settings
@@ -273,9 +277,9 @@ EOF
     echo ""
 
     if [ -n "$DOMAIN" ]; then
-        echo -e "  ${CYAN}Panel URL:${NC}     https://$DOMAIN:$WEB_PORT"
+        echo -e "  ${CYAN}Panel URL:${NC}     https://$DOMAIN:$WEB_PORT/$SECRET_PATH/"
     else
-        echo -e "  ${CYAN}Panel URL:${NC}     http://$SERVER_IP:$WEB_PORT"
+        echo -e "  ${CYAN}Panel URL:${NC}     http://$SERVER_IP:$WEB_PORT/$SECRET_PATH/"
     fi
     echo -e "  ${CYAN}Username:${NC}      $ADMIN_USER"
     echo -e "  ${CYAN}Password:${NC}      $ADMIN_PASS"
