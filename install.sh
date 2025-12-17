@@ -74,10 +74,34 @@ check_dependencies() {
     print_success "All dependencies are installed"
 }
 
-# Generate random string
-generate_random() {
+# Generate random username (alphanumeric only)
+generate_username() {
     local length=$1
     tr -dc 'a-zA-Z0-9' < /dev/urandom | fold -w "$length" | head -n 1
+}
+
+# Generate secure password (16 chars: upper, lower, digits, simple punctuation)
+generate_password() {
+    local password=""
+    local uppercase="ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    local lowercase="abcdefghijklmnopqrstuvwxyz"
+    local digits="0123456789"
+    local punctuation="!@#%^&*()-_=+"
+    local all="${uppercase}${lowercase}${digits}${punctuation}"
+
+    # Ensure at least one of each type
+    password+="${uppercase:RANDOM % ${#uppercase}:1}"
+    password+="${lowercase:RANDOM % ${#lowercase}:1}"
+    password+="${digits:RANDOM % ${#digits}:1}"
+    password+="${punctuation:RANDOM % ${#punctuation}:1}"
+
+    # Fill remaining 12 characters randomly
+    for _ in {1..12}; do
+        password+="${all:RANDOM % ${#all}:1}"
+    done
+
+    # Shuffle the password
+    echo "$password" | fold -w1 | shuf | tr -d '\n'
 }
 
 # Generate random port
@@ -129,8 +153,8 @@ install() {
     cd "$INSTALL_DIR"
 
     # Generate credentials
-    ADMIN_USER=$(generate_random 10)
-    ADMIN_PASS=$(generate_random 16)
+    ADMIN_USER=$(generate_username 10)
+    ADMIN_PASS=$(generate_password)
     WEB_PORT=$(generate_random_port)
     OVPN_PORT=1194
     SERVER_IP=$(get_public_ip)
@@ -176,20 +200,44 @@ EOF
     chmod 600 "$INSTALL_DIR/.env"
     print_success "Configuration created"
 
-    # Download or copy docker-compose.yml if not exists
+    # Download or copy project files
+    REPO_URL="https://github.com/oranguthang/openvpn_ui"
+    REPO_RAW="https://raw.githubusercontent.com/oranguthang/openvpn_ui/main"
+
     if [ ! -f "$INSTALL_DIR/docker-compose.yml" ]; then
-        # If running from repo, copy files
-        if [ -f "$(dirname "$0")/docker-compose.yml" ]; then
-            cp "$(dirname "$0")/docker-compose.yml" "$INSTALL_DIR/"
-            cp "$(dirname "$0")/Dockerfile" "$INSTALL_DIR/"
-            cp -r "$(dirname "$0")/backend" "$INSTALL_DIR/"
-            cp -r "$(dirname "$0")/frontend" "$INSTALL_DIR/"
-            cp -r "$(dirname "$0")/setup" "$INSTALL_DIR/"
-            cp -r "$(dirname "$0")/templates" "$INSTALL_DIR/"
-            cp "$(dirname "$0")/docker-entrypoint.sh" "$INSTALL_DIR/"
+        # Check if running from local repo
+        SCRIPT_DIR="$(cd "$(dirname "$0")" 2>/dev/null && pwd)"
+        if [ -f "$SCRIPT_DIR/docker-compose.yml" ]; then
+            print_info "Copying files from local repository..."
+            cp "$SCRIPT_DIR/docker-compose.yml" "$INSTALL_DIR/"
+            cp "$SCRIPT_DIR/Dockerfile" "$INSTALL_DIR/"
+            cp -r "$SCRIPT_DIR/backend" "$INSTALL_DIR/"
+            cp -r "$SCRIPT_DIR/frontend" "$INSTALL_DIR/"
+            cp -r "$SCRIPT_DIR/setup" "$INSTALL_DIR/"
+            cp -r "$SCRIPT_DIR/templates" "$INSTALL_DIR/"
+            cp "$SCRIPT_DIR/docker-entrypoint.sh" "$INSTALL_DIR/"
         else
-            print_error "docker-compose.yml not found. Please run from the project directory."
-            exit 1
+            # Download from GitHub
+            print_info "Downloading files from GitHub..."
+
+            if ! command -v git &> /dev/null; then
+                print_error "Git is required to download the project"
+                print_info "Install git: apt install git -y"
+                exit 1
+            fi
+
+            git clone --depth 1 "$REPO_URL.git" "$INSTALL_DIR/repo" 2>/dev/null
+
+            cp "$INSTALL_DIR/repo/docker-compose.yml" "$INSTALL_DIR/"
+            cp "$INSTALL_DIR/repo/Dockerfile" "$INSTALL_DIR/"
+            cp -r "$INSTALL_DIR/repo/backend" "$INSTALL_DIR/"
+            cp -r "$INSTALL_DIR/repo/frontend" "$INSTALL_DIR/"
+            cp -r "$INSTALL_DIR/repo/setup" "$INSTALL_DIR/"
+            cp -r "$INSTALL_DIR/repo/templates" "$INSTALL_DIR/"
+            cp "$INSTALL_DIR/repo/docker-entrypoint.sh" "$INSTALL_DIR/"
+
+            rm -rf "$INSTALL_DIR/repo"
+            print_success "Files downloaded"
         fi
     fi
 
