@@ -25,6 +25,9 @@ COPY --from=frontend-builder /app/static /app/frontend/static
 # Copy backend source
 COPY backend/ ./
 
+# Update dependencies
+RUN go mod tidy
+
 # Build
 ARG TARGETARCH
 RUN packr2 && \
