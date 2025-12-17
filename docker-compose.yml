@@ -1,0 +1,41 @@
+services:
+  openvpn-ui:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: openvpn-ui:latest
+    container_name: openvpn-ui
+    restart: unless-stopped
+    privileged: true
+    cap_add:
+      - NET_ADMIN
+    environment:
+      # Admin credentials (set by install.sh or manually)
+      - ADMIN_USERNAME=${ADMIN_USERNAME:-admin}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-}
+      # Domain for Let's Encrypt HTTPS (leave empty for HTTP only)
+      - DOMAIN=${DOMAIN:-}
+      # OpenVPN settings
+      - OVPN_SERVER_NET=${OVPN_SERVER_NET:-10.8.0.0}
+      - OVPN_SERVER_MASK=${OVPN_SERVER_MASK:-255.255.255.0}
+      - OVPN_SERVER_PORT=${OVPN_SERVER_PORT:-1194}
+      # Web UI port (internal, mapped below)
+      - WEB_PORT=${WEB_PORT:-8080}
+      # Timezone
+      - TZ=${TZ:-UTC}
+    ports:
+      # OpenVPN port (TCP and UDP)
+      - "${OVPN_SERVER_PORT:-1194}:${OVPN_SERVER_PORT:-1194}/tcp"
+      - "${OVPN_SERVER_PORT:-1194}:${OVPN_SERVER_PORT:-1194}/udp"
+      # Web UI port
+      - "${WEB_PORT:-8080}:${WEB_PORT:-8080}"
+      # HTTPS port (if domain is set)
+      - "443:443"
+    volumes:
+      # Persistent data
+      - ./data/easyrsa:/etc/openvpn/easyrsa
+      - ./data/ccd:/etc/openvpn/ccd
+      - ./data/config:/etc/openvpn-ui
+    sysctls:
+      - net.ipv4.ip_forward=1
+    tty: true

@@ -1,19 +1,30 @@
+# Data directories
 easyrsa
 easyrsa_master
 easyrsa_slave
 ccd
 ccd_master
 ccd_slave
+data/
+
+# Build artifacts
 openvpn-web-ui*
 openvpn-ui*
 openvpn-admin*
 ovpn-admin*
+
+# Frontend
 frontend/node_modules
 
+# Packr
 main-packr.go
 packrd/
 
+# Docker (old compose format)
 docker-compose.yaml
+
+# Environment variables (contains secrets)
+.env
 
 # Editor directories and files
 .idea
@@ -21,3 +32,6 @@ docker-compose.yaml
 *.ntvs*
 *.njsproj
 *.sln
+
+# Reference project
+3x-ui-main/

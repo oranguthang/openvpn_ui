@@ -16,13 +16,15 @@ var axios_cfg = function(url, data='', type='form') {
   if (data == '') {
     return {
       method: 'get',
-      url: url
+      url: url,
+      withCredentials: true
     };
   } else if (type == 'form') {
     return {
       method: 'post',
       url: url,
       data: data,
+      withCredentials: true,
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
     };
   } else if (type == 'file') {
@@ -30,6 +32,7 @@ var axios_cfg = function(url, data='', type='form') {
       method: 'post',
       url: url,
       data: data,
+      withCredentials: true,
       headers: { 'Content-Type': 'multipart/form-data' }
     };
    } else if (type == 'json') {
@@ -37,6 +40,7 @@ var axios_cfg = function(url, data='', type='form') {
       method: 'post',
       url: url,
       data: data,
+      withCredentials: true,
       headers: { 'Content-Type': 'application/json' }
     };
   }
@@ -45,11 +49,21 @@ var axios_cfg = function(url, data='', type='form') {
 new Vue({
   el: '#app',
   data: {
+    // Authentication
+    isAuthenticated: false,
+    isLoading: true,
+    currentUser: '',
+    loginForm: {
+      username: '',
+      password: '',
+      error: '',
+      loading: false
+    },
+    // Dashboard data
     columns: [
       {
         label: 'Name',
         field: 'Identity',
-        // filterable: true,
       },
       {
         label: 'Account Status',
@@ -147,14 +161,6 @@ new Vue({
         showForServerRole: ['master'],
         showForModule: ["core"],
       },
-      // {
-      //   name: 'u-show-config',
-      //   label: 'Show config',
-      //   class: 'btn-primary',
-      //   showWhenStatus: 'Active',
-      //   showForServerRole: ['master', 'slave'],
-      //   showForModule: ["core"],
-      // },
       {
         name: 'u-download-config',
         label: 'Download config',
@@ -215,9 +221,7 @@ new Vue({
   watch: {
   },
   mounted: function () {
-    this.getUserData();
-    this.getServerSetting();
-    this.filters.hideRevoked = this.$cookies.isKey('hideRevoked') ? (this.$cookies.get('hideRevoked') == "true") : false
+    this.checkSession();
   },
   created() {
     var _this = this;
@@ -229,6 +233,11 @@ new Vue({
       .then(function(response) {
         _this.getUserData();
         _this.$notify({title: 'User ' + _this.username + ' revoked!', type: 'warn'})
+      })
+      .catch(function(error) {
+        if (error.response && error.response.status === 401) {
+          _this.handleUnauthorized();
+        }
       });
     })
     _this.$root.$on('u-unrevoke', function () {
@@ -238,6 +247,11 @@ new Vue({
       .then(function(response) {
         _this.getUserData();
         _this.$notify({title: 'User ' + _this.username + ' unrevoked!', type: 'success'})
+      })
+      .catch(function(error) {
+        if (error.response && error.response.status === 401) {
+          _this.handleUnauthorized();
+        }
       });
     })
     _this.$root.$on('u-rotate', function () {
@@ -257,6 +271,11 @@ new Vue({
       axios.request(axios_cfg('api/user/config/show', data, 'form'))
       .then(function(response) {
         _this.u.openvpnConfig = response.data;
+      })
+      .catch(function(error) {
+        if (error.response && error.response.status === 401) {
+          _this.handleUnauthorized();
+        }
       });
     })
     _this.$root.$on('u-download-config', function () {
@@ -270,7 +289,12 @@ new Vue({
         link.download = _this.username + ".ovpn"
         link.click()
         URL.revokeObjectURL(link.href)
-      }).catch(console.error);
+      })
+      .catch(function(error) {
+        if (error.response && error.response.status === 401) {
+          _this.handleUnauthorized();
+        }
+      });
     })
     _this.$root.$on('u-edit-ccd', function () {
       _this.u.modalShowCcdVisible = true;
@@ -279,6 +303,11 @@ new Vue({
       axios.request(axios_cfg('api/user/ccd', data, 'form'))
       .then(function(response) {
         _this.u.ccd = response.data;
+      })
+      .catch(function(error) {
+        if (error.response && error.response.status === 401) {
+          _this.handleUnauthorized();
+        }
       });
     })
     _this.$root.$on('u-disconnect-user', function () {
@@ -288,6 +317,11 @@ new Vue({
       axios.request(axios_cfg('api/user/disconnect', data, 'form'))
       .then(function(response) {
         console.log(response.data);
+      })
+      .catch(function(error) {
+        if (error.response && error.response.status === 401) {
+          _this.handleUnauthorized();
+        }
       });
     })
     _this.$root.$on('u-change-password', function () {
@@ -345,6 +379,89 @@ new Vue({
 
   },
   methods: {
+    // Authentication methods
+    checkSession: function() {
+      var _this = this;
+      axios.get('api/session', { withCredentials: true })
+        .then(function(response) {
+          if (response.data.authenticated) {
+            _this.isAuthenticated = true;
+            _this.currentUser = response.data.username;
+            _this.initDashboard();
+          } else {
+            _this.isAuthenticated = false;
+          }
+          _this.isLoading = false;
+        })
+        .catch(function(error) {
+          _this.isAuthenticated = false;
+          _this.isLoading = false;
+        });
+    },
+
+    login: function() {
+      var _this = this;
+      _this.loginForm.error = '';
+      _this.loginForm.loading = true;
+
+      axios.post('api/login', {
+        username: _this.loginForm.username,
+        password: _this.loginForm.password
+      }, { withCredentials: true })
+        .then(function(response) {
+          if (response.data.success) {
+            _this.isAuthenticated = true;
+            _this.currentUser = _this.loginForm.username;
+            _this.loginForm.username = '';
+            _this.loginForm.password = '';
+            _this.initDashboard();
+          } else {
+            _this.loginForm.error = response.data.message || 'Login failed';
+          }
+          _this.loginForm.loading = false;
+        })
+        .catch(function(error) {
+          _this.loginForm.error = error.response?.data?.message || 'Login failed';
+          _this.loginForm.loading = false;
+        });
+    },
+
+    logout: function() {
+      var _this = this;
+      axios.post('api/logout', {}, { withCredentials: true })
+        .then(function() {
+          _this.isAuthenticated = false;
+          _this.currentUser = '';
+          _this.rows = [];
+        })
+        .catch(function() {
+          _this.isAuthenticated = false;
+          _this.currentUser = '';
+          _this.rows = [];
+        });
+    },
+
+    handleUnauthorized: function() {
+      this.isAuthenticated = false;
+      this.currentUser = '';
+      this.$notify({title: 'Session expired. Please login again.', type: 'error'});
+    },
+
+    initDashboard: function() {
+      this.getUserData();
+      this.getServerSetting();
+      this.filters.hideRevoked = this.$cookies.isKey('hideRevoked') ? (this.$cookies.get('hideRevoked') == "true") : false;
+
+      // Start periodic refresh
+      var _this = this;
+      setInterval(function() {
+        if (_this.isAuthenticated) {
+          _this.getUserData();
+        }
+      }, 28000);
+    },
+
+    // Dashboard methods
     rowStyleClassFn: function(row) {
       if (row.ConnectionStatus == 'Connected') {
         return 'connected-user'
@@ -366,6 +483,11 @@ new Vue({
       axios.request(axios_cfg('api/users/list'))
         .then(function(response) {
           _this.rows = Array.isArray(response.data) ? response.data : [];
+        })
+        .catch(function(error) {
+          if (error.response && error.response.status === 401) {
+            _this.handleUnauthorized();
+          }
         });
     },
 
@@ -375,12 +497,10 @@ new Vue({
       .then(function(response) {
         _this.serverRole = response.data.serverRole;
         _this.modulesEnabled = response.data.modules;
-
-        if (_this.serverRole == "slave") {
-          axios.request(axios_cfg('api/sync/last/successful'))
-          .then(function(response) {
-            _this.lastSync =  response.data;
-          });
+      })
+      .catch(function(error) {
+        if (error.response && error.response.status === 401) {
+          _this.handleUnauthorized();
         }
       });
     },
@@ -405,9 +525,12 @@ new Vue({
         _this.getUserData();
       })
       .catch(function(error) {
-        _this.u.newUserCreateError = error.response.data;
-        _this.$notify({title: 'New user ' + _this.username + ' creation failed.', type: 'error'})
-
+        if (error.response && error.response.status === 401) {
+          _this.handleUnauthorized();
+        } else {
+          _this.u.newUserCreateError = error.response.data;
+          _this.$notify({title: 'New user ' + _this.username + ' creation failed.', type: 'error'})
+        }
       });
     },
 
@@ -424,9 +547,13 @@ new Vue({
         _this.$notify({title: 'Ccd for user ' + _this.username + ' applied', type: 'success'})
       })
       .catch(function(error) {
-        _this.u.ccdApplyStatus = error.response.status;
-        _this.u.ccdApplyStatusMessage = error.response.data;
-        _this.$notify({title: 'Ccd for user ' + _this.username + ' apply failed ', type: 'error'})
+        if (error.response && error.response.status === 401) {
+          _this.handleUnauthorized();
+        } else {
+          _this.u.ccdApplyStatus = error.response.status;
+          _this.u.ccdApplyStatusMessage = error.response.data;
+          _this.$notify({title: 'Ccd for user ' + _this.username + ' apply failed ', type: 'error'})
+        }
       });
     },
 
@@ -448,9 +575,13 @@ new Vue({
           _this.$notify({title: 'Password for user ' + _this.username + ' changed!', type: 'success'})
         })
         .catch(function(error) {
-          _this.u.passwordChangeStatus = error.response.status;
-          _this.u.passwordChangeMessage = error.response.data.message;
-          _this.$notify({title: 'Changing password for user ' + _this.username + ' failed!', type: 'error'})
+          if (error.response && error.response.status === 401) {
+            _this.handleUnauthorized();
+          } else {
+            _this.u.passwordChangeStatus = error.response.status;
+            _this.u.passwordChangeMessage = error.response.data.message;
+            _this.$notify({title: 'Changing password for user ' + _this.username + ' failed!', type: 'error'})
+          }
         });
     },
 
@@ -472,9 +603,13 @@ new Vue({
           _this.$notify({title: 'Certificates for user ' + _this.username + ' rotated!', type: 'success'})
         })
         .catch(function(error) {
-          _this.u.roatateUserStatus = error.response.status;
-          _this.u.rotateUserMessage = error.response.data.message;
-          _this.$notify({title: 'Rotate certificates for user ' + _this.username + ' failed!', type: 'error'})
+          if (error.response && error.response.status === 401) {
+            _this.handleUnauthorized();
+          } else {
+            _this.u.roatateUserStatus = error.response.status;
+            _this.u.rotateUserMessage = error.response.data.message;
+            _this.$notify({title: 'Rotate certificates for user ' + _this.username + ' failed!', type: 'error'})
+          }
         })
     },
     deleteUser: function(user) {
@@ -494,9 +629,13 @@ new Vue({
           _this.$notify({title: 'User ' + _this.username + ' deleted!', type: 'success'})
         })
         .catch(function(error) {
-          _this.u.deleteUserStatus = error.response.status;
-          _this.u.deleteUserMessage = error.response.data.message;
-          _this.$notify({title: 'Deleting user ' + _this.username + ' failed!', type: 'error'})
+          if (error.response && error.response.status === 401) {
+            _this.handleUnauthorized();
+          } else {
+            _this.u.deleteUserStatus = error.response.status;
+            _this.u.deleteUserMessage = error.response.data.message;
+            _this.$notify({title: 'Deleting user ' + _this.username + ' failed!', type: 'error'})
+          }
         })
     },
   }
