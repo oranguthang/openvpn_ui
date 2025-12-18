@@ -102,6 +102,12 @@ OPENVPN_NETWORK="${OPENVPN_SRV_NET}/${CIDR}"
 
 echo "[INFO] Starting OpenVPN UI..."
 
+# Determine public host for clients (can be overridden via OPENVPN_SERVER_HOST)
+OPENVPN_SERVER_HOST=${OPENVPN_SERVER_HOST:-$(curl -s ifconfig.me 2>/dev/null || true)}
+if [ -z "$OPENVPN_SERVER_HOST" ]; then
+    OPENVPN_SERVER_HOST="127.0.0.1"
+fi
+
 # Start UI
 exec /app/openvpn_ui \
     --listen.host=0.0.0.0 \
@@ -110,7 +116,7 @@ exec /app/openvpn_ui \
     --easyrsa.path=${EASY_RSA_LOC} \
     --easyrsa.index-path=${EASY_RSA_LOC}/pki/index.txt \
     --openvpn.network=${OPENVPN_NETWORK} \
-    --openvpn.server=127.0.0.1:${OPENVPN_SRV_PORT}:tcp \
+    --openvpn.server=${OPENVPN_SERVER_HOST}:${OPENVPN_SRV_PORT}:tcp \
     --ccd \
     --ccd.path=/etc/openvpn/ccd \
     --mgmt=127.0.0.1:8989

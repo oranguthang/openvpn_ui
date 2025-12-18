@@ -53,6 +53,7 @@ RUN apk add --no-cache \
     easy-rsa \
     openssl \
     coreutils \
+    curl \
     iptables \
     ip6tables \
     ca-certificates \
